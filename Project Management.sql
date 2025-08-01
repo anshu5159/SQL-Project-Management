@@ -5,9 +5,8 @@
 
 
 #   Introduction  -|
-#   This SQL assignment simulates a real-world company setup where projects, tasks, teams, models, and datasets
-#   are tracked using SQL. The script demonstrates the creation of a project management schema with queries
-#   covering CTEs, window functions, subqueries, aggregation, joins, and date operations.
+#   This SQL assignment simulates a real-world company setup where projects, tasks, teams, models, and datasets are tracked using SQL. The script demonstrates the
+#   creation of a project management schema with queries covering CTEs, window functions, subqueries, aggregation, joins, and date operations.
 #   The database consists of:
 #     • Projects: Basic project info and budget
 #     • Tasks: Assigned work per project
@@ -15,8 +14,8 @@
 #     • Model_Training: AI model training per project
 #     • Data_Sets: Dataset tracking for each project
 
-CREATE DATABASE PROJECT;  -- creating a new database
-USE PROJECT;			  -- using the database for further proceedings
+CREATE DATABASE PROJECT;  			  -- creating a new database
+USE PROJECT;			  		  -- using the PROJECT database for further proceedings
 
 #   Create the tables Projects, Tasks, and Teams
 CREATE TABLE Projects(
@@ -30,7 +29,7 @@ CREATE TABLE Projects(
 						  -- the project id is primary key which will not accept any null or repeated values.
 
 INSERT INTO Projects VALUES(701, 'Sales Dashboard', '2024-02-01', '2024-07-30', 2, 50000),
-						   (702, 'E-commerce Remodel', '2024-03-01', '2024-08-15', 3, 120000),
+			   (702, 'E-commerce Remodel', '2024-03-01', '2024-08-15', 3, 120000),
                            (703, 'HR Automation Tool', '2024-01-15', '2024-05-30', 2, 65000),
                            (704, 'Employee Portal', '2024-04-05', '2024-09-10', 4, 72000),
                            (705, 'Mobile Tracker', '2024-06-10', '2024-10-01', 3, 85000),
@@ -55,7 +54,7 @@ CREATE TABLE Tasks(
 						  -- the project id is foreign key which will be used for joining tables.
 
 INSERT INTO Tasks VALUES(201, 702, 105, 'Setup Payment Gateway', '2024-06-10', 'Completed'),
-						(202, 701, 103, 'Implement Charts', '2024-05-15', 'Pending'),
+			(202, 701, 103, 'Implement Charts', '2024-05-15', 'Pending'),
                         (203, 701, 104, 'Design UI Mockups', '2024-04-01', 'Completed'),
                         (204, 702, 106, 'Add Product Filters', '2024-06-20', 'Completed'),
                         (205, 703, 104, 'Form Automation Scripts', '2024-03-25', 'Pending'),
@@ -85,7 +84,7 @@ CREATE TABLE Teams(
 						  -- the member id is primary key which will not accept any null or repeated values.
 
 INSERT INTO Teams VALUES(101, 1, 'Anita', 'Project Manager', 'anita67@company.com', 'Bangalore'),
-						(103, 2, 'Ravi', 'Team Lead', 'ravi123@company.com', 'Hyderabad'),
+			(103, 2, 'Ravi', 'Team Lead', 'ravi123@company.com', 'Hyderabad'),
                         (102, 1, 'Vikram', 'Developer', 'vikram.yadav@company.com', 'Delhi'),
                         (107, 4, 'Amit', 'DevOps Engineer', 'amit45@company.com', 'Pune'),
                         (104, 2, 'Priya', 'UI/QA Engineer', 'priya97das@company.com', 'Chennai'),
@@ -105,79 +104,79 @@ INSERT INTO Teams VALUES(101, 1, 'Anita', 'Project Manager', 'anita67@company.co
 #   Query1. Using a CTE, find projects along with the number of tasks assigned and number of completed tasks.
 #   Show project_name, total_tasks, completed_tasks.
 WITH ProjectTaskStats AS (SELECT project_id, COUNT(*) AS total_tasks,
-						  SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed_tasks FROM Tasks
+			  SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed_tasks FROM Tasks
                           GROUP BY project_id)
                           SELECT p.project_name, pts.total_tasks, pts.completed_tasks FROM Projects p
                           JOIN ProjectTaskStats pts ON p.project_id = pts.project_id;
 						  -- WITH is Common Table Expression(CTE) that allows naming a temporary result set.
-                          -- To count tasks per project used count().
-                          -- Using conditional logic within sum() to only count the completed tasks.
-                          -- Grouping rows by project_id using group by.
-                          -- Combining Projects and CTE results using join on common column project_id.
+                          			  -- To count tasks per project used count().
+                          			  -- Using conditional logic within sum() to only count the completed tasks.
+                          			  -- Grouping rows by project_id using group by.
+                          			  -- Combining Projects and CTE results using join on common column project_id.
 
 #   Query2. Write a query to find the top 2 team members with the highest number of tasks assigned across all projects.
 #   Use window functions (ROW_NUMBER() or RANK()).
 SELECT * FROM (SELECT t.member_id, t.names, t.roles, COUNT(ts.task_id) AS task_count,
-			   ROW_NUMBER() OVER (ORDER BY COUNT(ts.task_id) DESC) AS row_num
+	       ROW_NUMBER() OVER (ORDER BY COUNT(ts.task_id) DESC) AS row_num
                FROM Teams t JOIN Tasks ts ON t.member_id = ts.assigned_to
                GROUP BY t.member_id, t.names, t.roles) ranked WHERE ranked.row_num <= 2;
 						  -- Counting number of tasks assigned to each member using count().
-                          -- To define window for the window function using over.
-                          -- Sorting task count in descending order using order by.
-                          -- ROW_NUMBER() assigns a unique rank by task count.
-                          -- Grouping to aggregate task counts.
-                          -- Filtering using where.
+						  -- To define window for the window function using over.
+						  -- Sorting task count in descending order using order by.
+						  -- ROW_NUMBER() assigns a unique rank by task count.
+						  -- Grouping to aggregate task counts.
+						  -- Filtering using where.
 
 #   Query3. Using a correlated subquery, find tasks whose due_date is earlier than the average due_date of all tasks
 #   in the same project.
 SELECT DATE(FROM_UNIXTIME(AVG(UNIX_TIMESTAMP(deadline)))) AS avg_due_date FROM Tasks;
 						  -- Converts deadline to UNIX format (seconds).
-                          -- Using avg to find the mean then converting to date format.
+						  -- Using avg to find the mean then converting to date format.
 SELECT task_name, deadline FROM Tasks t1 WHERE deadline < (SELECT AVG(DATE(deadline)) FROM Tasks t2 WHERE t1.project_id = t2.project_id);
 						  -- Calculating the average deadline of tasks while converting to DATE only and dropping time.
-                          -- Filtering tasks where the deadline is earlier than calculated average in the sub-query.
-                          -- Using correlation with where clause.
+						  -- Filtering tasks where the deadline is earlier than calculated average in the sub-query.
+						  -- Using correlation with where clause.
 
 #   Query4. Find the project(s) with the maximum budget using a subquery.
 SELECT * FROM Projects WHERE fund = (SELECT MAX(fund) FROM Projects);
 						  -- Using sub-query to calculate the maximum fund value.
-                          -- Max() for maximum value.
+						  -- Max() for maximum value.
 
 #   Query5. Write a query that returns the percentage of completed tasks per project. 
 #   Use aggregate filtering or FILTER clause if supported.
 SELECT p.project_name, COUNT(t.task_id) AS total_tasks,
-					   SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) AS completed_tasks,
+		       SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) AS completed_tasks,
                        ROUND(100.0 * SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) / COUNT(t.task_id), 2) AS completed_percentage
                        FROM Projects p LEFT JOIN Tasks t ON p.project_id = t.project_id GROUP BY p.project_name;
 						  -- For calculating total tasks per project using count.
-                          -- Conditional logic for only completed values in the sum().
-                          -- Using operations to calculate the percentage.
-                          -- Using round() to round off to only 2 decimal places.
-                          -- Left join to combine tables
-                          -- Grouping based on project names.
+						  -- Conditional logic for only completed values in the sum().
+						  -- Using operations to calculate the percentage.
+						  -- Using round() to round off to only 2 decimal places.
+						  -- Left join to combine tables
+						  -- Grouping based on project names.
                                                     
                           
 #   Query6. Use a window function to show each task with its assigned_to, task_name, and the count of tasks
 #   assigned to that person, ordered by assigned_to.
 SELECT tm.names AS assigned_to, t.task_name, COUNT(*) OVER (PARTITION BY t.assigned_to) AS assigned_tasks_total
-							    FROM Tasks t JOIN Teams tm ON t.assigned_to = tm.member_id ORDER BY t.assigned_to;
+		FROM Tasks t JOIN Teams tm ON t.assigned_to = tm.member_id ORDER BY t.assigned_to;
 						  -- Defining the window scope for counting using over.
-                          -- PARTITION BY used for reseting count per user.
-                          -- Joining tables to get names from Teams.
+						  -- PARTITION BY used for reseting count per user.
+						  -- Joining tables to get names from Teams.
 
 #   Query7. Find all tasks assigned to team leads where the task is not completed and
 #   due date is within the next 15 days from today.
 SELECT t.* FROM Tasks t JOIN Teams tm ON t.assigned_to = tm.member_id WHERE tm.roles = 'Team Lead' AND t.status != 'Completed'
-				AND t.deadline BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL 15 DAY;
+		AND t.deadline BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL 15 DAY;
 						  -- Where clause for checking multiple conditions first the role to be team lead
-                          -- second the task status to be not completed and deadline between a range.
-                          -- CURRENT_DATE to get today’s date & to add 15 days to current date using + INTERVAL.
+						  -- second the task status to be not completed and deadline between a range.
+						  -- CURRENT_DATE to get today’s date & to add 15 days to current date using + INTERVAL.
 
 
 #   Query8. Write a query to list projects that have no tasks assigned yet (projects without any task records).
 SELECT p.* FROM Projects p LEFT JOIN Tasks t ON p.project_id = t.project_id WHERE t.project_id IS NULL;
 						  -- Using left join to keep all Projects records whether tasks exist or not.
-                          -- Filtering projects without any tasks using is null with proj id.
+						  -- Filtering projects without any tasks using is null with proj id.
                           
 
 #   Query9. You have an to create additional table Model_Training (training_id, project_id, model_name,
@@ -208,11 +207,11 @@ INSERT INTO Model_Training VALUES(1, 701, 'TransformerX', 91.25, '2024-05-01'),
 						  -- inserting values into Model_Training table
 
 SELECT mt.project_id, p.project_name, mt.model_name, mt.accuracy FROM Model_Training mt 
-					  JOIN Projects p ON p.project_id = mt.project_id WHERE (mt.project_id, mt.accuracy)
+		      JOIN Projects p ON p.project_id = mt.project_id WHERE (mt.project_id, mt.accuracy)
                       IN (SELECT project_id, MAX(accuracy) FROM Model_Training GROUP BY project_id);
 						  -- Joining tables Model_Training and Projects using project_id.
-                          -- Using sub-query to find model with maximum accuracy for each project_id.
-                          -- Filtering rows with the results of the sub-query.
+						  -- Using sub-query to find model with maximum accuracy for each project_id.
+						  -- Filtering rows with the results of the sub-query.
 
 
 
@@ -229,7 +228,7 @@ CREATE TABLE Data_Sets(
 						  -- the project id is foreign key which will be used for joining tables.
 
 INSERT INTO Data_Sets VALUES(1, 701, 'Sales2024', 12.5, '2024-07-01'),
-							(2, 703, 'HR_Data', 8.0, '2024-08-25'),
+			    (2, 703, 'HR_Data', 8.0, '2024-08-25'),
                             (3, 709, 'LogisticsData', 15.2, '2023-07-05'),
                             (4, 706, 'ETL_Archive', 11.0, '2024-06-20'),
                             (5, 705, 'Tracker_Logs', 13.8, '2025-07-10'),
@@ -237,24 +236,22 @@ INSERT INTO Data_Sets VALUES(1, 701, 'Sales2024', 12.5, '2024-07-01'),
 						  -- inserting values into Data_Sets table
 
 SELECT ds.project_id, p.project_name, ds.dataset_name, ds.size_gb, ds.last_updated FROM Data_Sets ds
-					  JOIN Projects p ON ds.project_id = p.project_id WHERE ds.size_gb > 10
+		      JOIN Projects p ON ds.project_id = p.project_id WHERE ds.size_gb > 10
                       AND ds.last_updated >= CURRENT_DATE - INTERVAL 30 DAY;
 						  -- Joining tables Data_Sets and Projects using project_id.
-                          -- Using where clause to filter as size_gb > 10
-                          -- also, CURRENT_DATE to get today’s date & to compute 30 days before today using
-                          -- CURRENT_DATE - INTERVAL whose result is used to check for last updated within month.
+						  -- Using where clause to filter as size_gb > 10
+						  -- also, CURRENT_DATE to get today’s date & to compute 30 days before today using
+						  -- CURRENT_DATE - INTERVAL whose result is used to check for last updated within month.
                           
 
 #   CONCLUSION  -|
 #   -------------|
-#   This assignment provided a comprehensive hands-on experience in working with relational databases in a
-#   real-world project management scenario. It provided insights into advanced SQL capabilities including:
+#   This assignment provided a comprehensive hands-on experience in working with relational databases in a real-world project management scenario.
+#   It provided insights into advanced SQL capabilities including:
 #      • Data modeling with relational table structures
 #      • Joins and foreign key relationships
 #      • Aggregate functions and conditional filtering
 #      • Window functions like ROW_NUMBER and RANK
 #      • Subqueries and date/time operations
-#   Through these queries, I derived useful insights such as task completion rates, top performers, overdue tasks,
-#   and resource allocation across projects.
-#   This exercise enhanced my understanding of structured query design and how SQL can be used not just for data
-#   retrieval but for meaningful decision-making.
+#   Through these queries, I derived useful insights such as task completion rates, top performers, overdue tasks, and resource allocation across projects.
+#   This exercise enhanced my understanding of structured query design and how SQL can be used not just for data retrieval but for meaningful decision-making.
